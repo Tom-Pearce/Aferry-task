@@ -5,5 +5,10 @@
       "source.fixAll.eslint": true
     }
   },
+  "editor.formatOnPaste": true,
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.organizeImports": "explicit",
+  },
   "sequencediagrams.diagram.style": "simple"
 }
