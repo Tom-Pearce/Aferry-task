@@ -1,0 +1,2 @@
+const EXTERNAL_SERVICE_URL = process.env.PUBLISH_URL;
+
