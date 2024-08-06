@@ -21,3 +21,8 @@ export type BookingObject = {
     product_provider: string;
 };
 
+export type TransformedBookingEvent = {
+    product_order_id_buyer: number;
+    timestamp: string;
+    product_provider_buyer: string;
+};

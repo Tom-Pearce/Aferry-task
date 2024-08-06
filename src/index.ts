@@ -1,6 +1,7 @@
 import { KinesisStreamEvent, KinesisStreamRecord } from 'aws-lambda';
 import { BookingCompletedEvent, EventData } from './types/objects';
 import { healthCheck } from './utils/external-service';
+import { transformBookingCompletedEvent } from './utils/transformers';
 
 const TARGET_EVENT = 'booking_completed';
 
@@ -30,15 +31,22 @@ export const processRecord = async (record: KinesisStreamRecord) => {
     );
 
     const bookingData: EventData = JSON.parse(payload);
+
+    if (bookingData.type !== TARGET_EVENT) {
         return;
     }
 
     try {
         const bookingEvent = bookingData as BookingCompletedEvent;
 
+        await publishBooking(bookingEvent);
     } catch (error) {
         return false;
     }
 };
 
+export const publishBooking = async (booking: BookingCompletedEvent) => {
+    const transformedData = transformBookingCompletedEvent(booking);
+
+    const;
 };
