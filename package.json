@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "scripts": {
     "build": "tsup",
+    "watch": "tsup --watch",
     "start:server": "node external-service",
     "invoke": "node app",
     "test": "vitest"
