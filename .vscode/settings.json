@@ -1,14 +1,14 @@
 {
-  "[typescript]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "[typescript]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "editor.codeActionsOnSave": {
+          "source.fixAll.eslint": "explicit"
+        }
+    },
+    "editor.formatOnPaste": true,
+    "editor.formatOnSave": true,
     "editor.codeActionsOnSave": {
-      "source.fixAll.eslint": true
-    }
-  },
-  "editor.formatOnPaste": true,
-  "editor.formatOnSave": true,
-  "editor.codeActionsOnSave": {
-    "source.organizeImports": "explicit",
-  },
-  "sequencediagrams.diagram.style": "simple"
+        "source.organizeImports": "explicit"
+    },
+    "sequencediagrams.diagram.style": "simple"
 }

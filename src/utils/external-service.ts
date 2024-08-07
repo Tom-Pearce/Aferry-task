@@ -2,8 +2,9 @@ import { TransformedBookingEvent } from 'src/types/objects';
 
 const EXTERNAL_SERVICE_URL = process.env.PUBLISH_URL;
 
-export const healthCheck = async () => {
+export const healthCheck = async (): Promise<boolean> => {
     if (!EXTERNAL_SERVICE_URL) {
+        console.error('External service URL not set');
         return false;
     }
 
@@ -11,12 +12,14 @@ export const healthCheck = async () => {
         const response = await fetch(EXTERNAL_SERVICE_URL);
         return response.ok;
     } catch {
-        // TODO: Log unavailability
+        console.error('External service is not available');
         return false;
     }
 };
 
-export const publishBooking = async (booking: TransformedBookingEvent) => {
+export const publishBooking = async (
+    booking: TransformedBookingEvent
+): Promise<boolean> => {
     if (!EXTERNAL_SERVICE_URL) {
         return false;
     }
@@ -32,7 +35,7 @@ export const publishBooking = async (booking: TransformedBookingEvent) => {
         console.log({ response: response.status });
         return response.ok;
     } catch {
-        // TODO: Log failure
+        console.error('Failed to publish booking to external service');
         return false;
     }
 };
