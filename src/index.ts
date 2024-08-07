@@ -3,15 +3,19 @@ import { BookingCompletedEvent, EventData } from './types/objects';
 import { healthCheck, publishBooking } from './utils/external-service';
 import { transformBookingCompletedEvent } from './utils/transformers';
 
-const TARGET_EVENT = 'booking_completed';
-
-export const handler = async (
-    event: KinesisStreamEvent
-): Promise<number | false | null | undefined> => {
+export const handler = async (event: KinesisStreamEvent) => {
     const serviceStatus = await healthCheck();
 
-    if (!serviceStatus) {
-        return undefined;
+    if (serviceStatus !== 'UP') {
+        if (serviceStatus === 'UNKNOWN_URL') {
+            throw new Error('External service URL not set');
+        }
+
+        if (serviceStatus === 'BAD_CONFIG') {
+            throw new Error('Bad config for external service calls');
+        }
+
+        throw new Error('External service is not available');
     }
 
     const records = event.Records;
@@ -21,7 +25,7 @@ export const handler = async (
         return null;
     }
 
-    let publishedRecords: number = 0;
+    let publishedRecords: string[] = [];
 
     for (const record of event.Records) {
         // Decode the data from the Kinesis record
@@ -42,16 +46,29 @@ export const handler = async (
             continue;
         }
 
-        // Validate if we want to process this event
-        const shouldProcess = isProcessingRequired(eventData);
+        // TODO: Check for idempotency - use event ID or order ID, and check against a persisted store/db to see if we've already processed this event
+        /*
+            // Function to check an identifier against log of processed events
+            const duplicate = await checkIdempotency(bookingData);
+            if (duplicate) {
+                // Possibly vary this logic based on desired business logic; might want to flag as a duplicate, etc.
+                return false; 
+            }
+        */
 
-        // If false, then we don't want to process this event, so skip
-        if (!shouldProcess) {
-            continue;
+        let result: boolean | undefined;
+        switch (eventData.type) {
+            case 'booking_completed':
+                result = await publishBookingCompletedToExternalService(
+                    eventData
+                );
+                break;
+            case 'booking_requested':
+                break;
+            default:
+                // Unexpected event type
+                break;
         }
-
-        console.log('Processing record:', eventData);
-        const result = await processRecord(eventData);
 
         // If undefined, then we're not actioning anything and skipping this record
         if (typeof result === 'undefined') {
@@ -60,7 +77,7 @@ export const handler = async (
 
         // If result is true, then we successfully published the record
         if (result) {
-            publishedRecords++;
+            publishedRecords.push(eventData.id);
             continue;
         }
 
@@ -81,6 +98,7 @@ export const decodeData = (data: string): string | false => {
 
 export const parsePayload = (payload: string): EventData | false => {
     try {
+        // Assuming here that the data received is what we expect. In real world, we'd want to validate this at run-time
         return JSON.parse(payload) as EventData;
     } catch (error) {
         console.error('Error parsing payload:', error);
@@ -88,37 +106,7 @@ export const parsePayload = (payload: string): EventData | false => {
     }
 };
 
-export const isProcessingRequired = (data: EventData): boolean => {
-    if (data.type !== TARGET_EVENT) {
-        return false;
-    }
-
-    // TODO: Check for idempotency - use event ID or order ID, and check against a persisted store/db to see if we've already processed this event
-    /*
-        // Function to check an identifier against log of processed events
-        const duplicate = await checkIdempotency(bookingData);
-        if (duplicate) {
-            // Possibly vary this logic based on desired business logic; might want to flag as a duplicate, etc.
-            return false; 
-        }
-    */
-
-    return true;
-};
-
-export const processRecord = async (
-    data: EventData
-): Promise<boolean | undefined> => {
-    try {
-        const bookingEvent = data as BookingCompletedEvent;
-
-        return await publishBookingToExternalService(bookingEvent);
-    } catch (error) {
-        return false;
-    }
-};
-
-export const publishBookingToExternalService = async (
+export const publishBookingCompletedToExternalService = async (
     booking: BookingCompletedEvent
 ): Promise<boolean> => {
     const transformedData = transformBookingCompletedEvent(booking);

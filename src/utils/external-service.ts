@@ -1,19 +1,23 @@
+import { env } from 'src/types/environment';
 import { TransformedBookingEvent } from 'src/types/objects';
 
 const EXTERNAL_SERVICE_URL = process.env.PUBLISH_URL;
 
-export const healthCheck = async (): Promise<boolean> => {
+export const healthCheck = async (): Promise<
+    'UP' | 'DOWN' | 'UNKNOWN_URL' | 'BAD_CONFIG'
+> => {
     if (!EXTERNAL_SERVICE_URL) {
         console.error('External service URL not set');
-        return false;
+        return 'UNKNOWN_URL';
     }
 
     try {
         const response = await fetch(EXTERNAL_SERVICE_URL);
-        return response.ok;
+
+        return response.ok ? 'UP' : 'DOWN';
     } catch {
         console.error('External service is not available');
-        return false;
+        return 'BAD_CONFIG';
     }
 };
 
