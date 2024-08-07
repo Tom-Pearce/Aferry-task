@@ -26,9 +26,3 @@ export type TransformedBookingEvent = {
     timestamp: string;
     product_provider_buyer: string;
 };
-
-const test = (event: EventData) => {
-    if (event.type === 'booking_completed') {
-        console.log(event.booking_completed.orderId);
-    }
-};
