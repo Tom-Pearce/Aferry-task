@@ -1,7 +1,7 @@
 import { env } from 'src/types/environment';
 import { TransformedBookingEvent } from 'src/types/objects';
 
-const EXTERNAL_SERVICE_URL = process.env.PUBLISH_URL;
+const EXTERNAL_SERVICE_URL = env.PUBLISH_URL;
 
 export const healthCheck = async (): Promise<
     'UP' | 'DOWN' | 'UNKNOWN_URL' | 'BAD_CONFIG'
