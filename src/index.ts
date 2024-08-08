@@ -6,6 +6,8 @@ import { transformBookingCompletedEvent } from './utils/transformers';
 export const handler = async (event: KinesisStreamEvent) => {
     const serviceStatus = await healthCheck();
 
+    // If the external service is not available, then we can't do anything; loudly fail
+    // TODO: Probably want to handle this more gracefully in production, but for now, we'll throw errors
     if (serviceStatus !== 'UP') {
         if (serviceStatus === 'UNKNOWN_URL') {
             throw new Error('External service URL not set');
@@ -117,6 +119,7 @@ export const parsePayload = (payload: string): EventData | false => {
 export const publishBookingCompletedToExternalService = async (
     booking: BookingCompletedEvent
 ): Promise<boolean> => {
+    // Map the booking data to the format expected by the external service
     const transformedData = transformBookingCompletedEvent(booking);
 
     return await publishBooking(transformedData);

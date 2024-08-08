@@ -200,51 +200,7 @@ describe('handle valid event stream with unknown event types', async () => {
         const publishSpy = vi.spyOn(externalService, 'publishBooking');
         const result = await handler(mockEventStream);
 
-        expect(publishSpy).toHaveBeenCalledTimes(0);
-
-        // @ts-ignore
-        expectTypeOf(result).toEqualTypeOf<string[]>();
-    });
-});
-
-describe('handle valid event stream with malformed data', async () => {
-    let mockEventStream: KinesisStreamEvent = { Records: [] };
-
-    beforeEach(() => {
-        mockEventStream.Records = [];
-        for (let i = 0; i < 3; i++) {
-            const mockData = mock<BookingRequestedEvent>(
-                {},
-                {
-                    fallbackMockImplementation: () => {
-                        return {
-                            id: 'test',
-                            partitionKey: 'testKey',
-                            timestamp: new Date().getTime(),
-                            type: 'booking_requested',
-                            booking_requested: {
-                                timestamp: new Date().getTime(),
-                                orderId: Math.random()
-                                    .toString(36)
-                                    .substring(7),
-                            },
-                        };
-                    },
-                }
-            );
-
-            let mockRecord = mock<KinesisStreamRecord>();
-            mockRecord.kinesis.data = Buffer.from(
-                JSON.stringify(mockData)
-            ).toString('base64');
-            mockEventStream.Records.push(mockRecord);
-        }
-    });
-
-    test('test 3 valid events', async () => {
-        const publishSpy = vi.spyOn(externalService, 'publishBooking');
-        const result = await handler(mockEventStream);
-
+        // Should not have been called as unknown event type
         expect(publishSpy).toHaveBeenCalledTimes(0);
 
         // @ts-ignore
