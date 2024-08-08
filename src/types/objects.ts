@@ -9,6 +9,7 @@ export interface BookingCompletedEvent extends BaseEvent {
     type: 'booking_completed';
     booking_completed: BookingObject;
 }
+
 export interface BookingRequestedEvent extends BaseEvent {
     type: 'booking_requested';
     booking_requested: BookingObject;

@@ -89,7 +89,15 @@ export const handler = async (event: KinesisStreamEvent) => {
 
 export const decodeData = (data: string): string | false => {
     try {
-        return Buffer.from(data, 'base64').toString('utf-8');
+        if (
+            /^([0-9a-zA-Z+/]{4})*(([0-9a-zA-Z+/]{2}==)|([0-9a-zA-Z+/]{3}=))?$/.test(
+                data
+            )
+        ) {
+            return Buffer.from(data, 'base64').toString('utf-8');
+        }
+
+        throw new Error('Invalid base64 data');
     } catch {
         console.error('Error decoding data');
         return false;
@@ -101,7 +109,7 @@ export const parsePayload = (payload: string): EventData | false => {
         // Assuming here that the data received is what we expect. In real world, we'd want to validate this at run-time
         return JSON.parse(payload) as EventData;
     } catch (error) {
-        console.error('Error parsing payload:', error);
+        console.error('Error parsing payload');
         return false;
     }
 };
