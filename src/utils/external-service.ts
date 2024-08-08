@@ -36,7 +36,7 @@ export const publishBooking = async (
                 'Content-Type': 'application/json',
             },
         });
-        console.log({ response: response.status });
+
         return response.ok;
     } catch {
         console.error('Failed to publish booking to external service');

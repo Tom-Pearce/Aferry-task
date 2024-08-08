@@ -7,6 +7,7 @@ import type {
 } from '../src/types/objects';
 import * as externalService from '../src/utils/external-service';
 
+// For most scenarios assume the external service is up and works fine
 beforeEach(() => {
     vi.mock('../src/utils/external-service', async () => {
         return {
@@ -31,6 +32,7 @@ describe('handle empty event stream', async () => {
 
 describe('handle missing env var', async () => {
     it('external service is down', async () => {
+        // Mock the service to be down
         // @ts-ignore
         externalService.healthCheck.mockResolvedValueOnce('DOWN');
 
@@ -43,6 +45,7 @@ describe('handle missing env var', async () => {
         ).rejects.toThrowError();
     });
     it('external service is missing service url', async () => {
+        // Mock the service to be missing the service URL
         // @ts-ignore
         externalService.healthCheck.mockResolvedValueOnce('UNKNOWN_URL');
 
@@ -56,6 +59,7 @@ describe('handle missing env var', async () => {
     });
 
     it('external service has a bad config', async () => {
+        // Mock a bad config in the fetch request
         // @ts-ignore
         externalService.healthCheck.mockResolvedValueOnce('BAD_CONFIG');
 
@@ -108,6 +112,7 @@ describe('handle valid event stream', async () => {
         const publishSpy = vi.spyOn(externalService, 'publishBooking');
         const result = await handler(mockEventStream);
 
+        // Should have called the external service 3 times
         expect(publishSpy).toHaveBeenCalledTimes(3);
 
         // @ts-ignore
@@ -154,6 +159,7 @@ describe('handle valid event stream with ignored event types', async () => {
         const publishSpy = vi.spyOn(externalService, 'publishBooking');
         const result = await handler(mockEventStream);
 
+        // Service should not have been called as not a event we want to process
         expect(publishSpy).toHaveBeenCalledTimes(0);
 
         // @ts-ignore
@@ -221,7 +227,6 @@ describe('handle invalid data in event stream', async () => {
     });
 
     test('test failed decode', async () => {
-        // mock return of decodeData in src/index to be false
         const result = await handler(mockEventStream);
         expect(result).toStrictEqual([]);
     });
@@ -266,6 +271,7 @@ describe('handle valid event stream with malformed JSON', async () => {
         const publishSpy = vi.spyOn(externalService, 'publishBooking');
         const result = await handler(mockEventStream);
 
+        // Shuoldnt be called as malformed JSON
         expect(publishSpy).toHaveBeenCalledTimes(0);
 
         // @ts-ignore
@@ -273,7 +279,7 @@ describe('handle valid event stream with malformed JSON', async () => {
     });
 });
 
-describe('handle valid event stream, but fails to publish', async () => {
+describe('handle valid event stream, but fails to publish once', async () => {
     let mockEventStream: KinesisStreamEvent = { Records: [] };
 
     beforeEach(() => {
@@ -314,9 +320,11 @@ describe('handle valid event stream, but fails to publish', async () => {
         const publishSpy = vi.spyOn(externalService, 'publishBooking');
         const result = await handler(mockEventStream);
 
+        // Should have called the external service 3 times, all valid events
         expect(publishSpy).toHaveBeenCalledTimes(3);
 
+        // Should only have 2 published records, as one failed
         // @ts-ignore
-        expectTypeOf(result).toEqualTypeOf<string[]>();
+        expect(result.length).toBe(2);
     });
 });
