@@ -3,7 +3,8 @@
   "version": "0.1.0",
   "scripts": {
     "build": "tsup",
-    "start:server": "node external",
+    "watch": "tsup --watch",
+    "start:server": "node external-service",
     "invoke": "node app",
     "test": "vitest"
   },
@@ -28,6 +29,7 @@
   "dependencies": {
     "@types/aws-lambda": "^8.10.83",
     "jsonschema": "^1.4.0",
-    "source-map-support": "^0.5.16"
+    "source-map-support": "^0.5.16",
+    "zod": "^3.23.8"
   }
 }
